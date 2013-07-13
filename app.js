@@ -79,12 +79,10 @@ io.sockets.on('connection', function (socket) {
   })
 
   socket.on('disconnect', function () {
-    if (goodies[socket.id] && markers[goodies[socket.id]] && 
-        markers[goodies[socket.id]].members.indexOf(names[socket.id]) != -1)
-          markers[goodies[socket.id]].members.splice(markers[goodies[socket.id]].memebrs.indexOf(names[socket.id]),1)
-    
-    delete names[socket.id];
     io.sockets.in(goodies[socket.id]).emit('personLeft', names[socket.id]);
+    if (goodies[socket.id] && markers[goodies[socket.id]].members.indexOf(names[socket.id]) > -1)
+      markers[goodies[socket.id]].members.remove(names[socket.id]); 
+    delete names[socket.id];
     delete goodies[socket.id];
   });
 

@@ -81,3 +81,32 @@ body{
 	opacity: 1 !important;
 	pointer-events: auto !important;
 }
+
+form {
+	z-index: 1;
+	position: absolute;
+	top: 60%;
+	left: 50%;
+	text-align: center;
+	width: 500px;
+	margin-left: -250px;
+}
+
+#textBox {
+	font-size: 25px;
+	border-radius: 5px;
+	padding: 3px;
+	padding-left: 10px;
+}
+
+#getStarted {
+	color: #ffffff;
+	text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+	background-color: #006dcc;
+	border-radius: 12px;
+	font-size: 30px;
+	margin-top: 10px;
+	padding: 4px 12px;
+	vertical-align: middle;
+	width: 280px;
+}
