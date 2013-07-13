@@ -11,6 +11,8 @@ body{
 	margin:0;
 	padding:0;
 	overflow:hidden;
+	background-image: url('/splash.png');
+	background-size: cover;
 }
 
 #mapCanvas{
@@ -98,9 +100,14 @@ body{
 	top: 50%;
 	left: 50%;
 	text-align: center;
-	width: 500px;
-	margin-left: -250px;
-	margin-top: -140px;
+	width: 400px;
+	margin-left: -200px;
+	margin-top: -100px;
+	background-color: white;
+	border-radius: 20px;
+	padding: 30px 0px 20px 0px;
+	opacity: 0.95;
+	box-shadow: 0px 0px 15px black;
 }
 
 #textBox {
