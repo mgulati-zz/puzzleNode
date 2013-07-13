@@ -2,10 +2,8 @@
 
 
 ///Bullshit prototype
-Array.prototype.remove = function(from, to) {
-  var rest = this.slice((to || from) + 1 || this.length);
-  this.length = from < 0 ? this.length + from : from;
-  return this.push.apply(this, rest);
+Array.prototype.remove = function(item) {
+   this.splice(this.indexOf(item),1)
 };
 
 
@@ -48,6 +46,7 @@ io.configure(function () {
 //the entire database is just javascript variables
 var names = {};
 var goodies = {};
+var locked = {};
 
 io.sockets.on('connection', function (socket) {
   
@@ -75,15 +74,29 @@ io.sockets.on('connection', function (socket) {
   })
   
   socket.on('unlock', function() {
-
+     user_id = names[socket.id]
+     marker_id = goodies[socket.id]
+     marker =  markers[marker_id]
+     locked[user_id]= true
+     recieverlist = []
+     for(member_index in marker.members){
+        if(locked[marker.members[member_index]]){
+           recieverlist.push(members[member_index])
+        }
+     }
+     if(recieverlist.length >= 4){
+       distributeImages(recieverlist)
+     }
   })
 
   socket.on('disconnect', function () {
+    user_id = names[socket.id]
     io.sockets.in(goodies[socket.id]).emit('personLeft', names[socket.id]);
     if (goodies[socket.id] && markers[goodies[socket.id]].members.indexOf(names[socket.id]) > -1)
       markers[goodies[socket.id]].members.remove(names[socket.id]); 
     delete names[socket.id];
     delete goodies[socket.id];
+    delete locked[user_id]
   });
 
 });
@@ -155,14 +168,15 @@ for (var i = 0; i <= 4; i++)
   img.crop({
     srcPath: imgPath,
     dstPath: 'crop'+i+'.jpg',
-    width: (meta.width)/2,
-    height: (meta.height)/2,
+    width: (metadata.width)/2,
+    height: (metadata.height)/2,
     quality: 1,
     gravity: corners[i]
   }, function(error, stdout, stderror){
 
   });
 
+ //load files, send them out, and delete them
   
 }
 
@@ -196,9 +210,13 @@ app.get('/addMarker', function(req, res, next){
   url = req.query.url
   latitude = req.query.latitude
   longitude = req.query.longitude
-  markers.id = new goodie(Id, latitude, longitude, url)
+  markers[Id] = new goodie(Id, latitude, longitude, url)
 });
 
+
+function distributeImages(recieverlist) {
+
+}
 
 
 

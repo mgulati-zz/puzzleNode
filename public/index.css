@@ -82,14 +82,15 @@ body{
 	pointer-events: auto !important;
 }
 
-form {
+#nameForm {
 	z-index: 1;
 	position: absolute;
-	top: 60%;
+	top: 50%;
 	left: 50%;
 	text-align: center;
 	width: 500px;
 	margin-left: -250px;
+	margin-top: -140px;
 }
 
 #textBox {
@@ -109,4 +110,20 @@ form {
 	padding: 4px 12px;
 	vertical-align: middle;
 	width: 280px;
+	opacity: 0;
+	cursor: pointer;
+	pointer-events: none;
+	-webkit-transition: opacity .3s ease-in-out;
+    -moz-transition: opactiy .3s ease-in-out;
+    -ms-transition: opacity .3s ease-in-out;
+    -o-transition: opacity .3s ease-in-out;
+    transition: opacity .3s ease-in-out;
+}
+
+#onboarding {
+	width: 270px;
+	margin-bottom: 20px;
+	font-size: 30px;
+	margin-left: auto;
+	margin-right: auto;
 }
