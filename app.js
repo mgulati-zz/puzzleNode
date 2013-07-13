@@ -189,7 +189,7 @@ server.listen(app.get('port'));
 //MARKERS API
 var markers = {}
 
-markers.first = new goodie('alcohol',37.524975368048196, -122.310791015625,'http://thinkprogress.org/wp-content/uploads/2013/02/scotch-yum.jpg');
+markers.first = new goodie('alcohol',37.423708, -122.071039,'http://static.desktopnexus.com/wallpaper/970047-1680x1050-[DesktopNexus.com].jpg?st=daEeje9sE5NxBo2csLubVg&e=1373749725');
 markers.first.members.push('Aya', 'Jordan', 'Devon');
 
 markers.second = new goodie('food',37.58594229860422, -122.49343872070312,'http://s3.amazonaws.com/cmi-niche/assets/pictures/8856/content_02-fresh2_fi.gif?1304519533');
@@ -215,10 +215,16 @@ app.get('/addMarker', function(req, res, next){
   markers[Id] = new goodie(Id, latitude, longitude, url)
 });
 
+var spliced = {"http://static.desktopnexus.com/wallpaper/970047-1680x1050-[DesktopNexus.com].jpg?st=daEeje9sE5NxBo2csLubVg&e=1373749725": ["http://i.imgur.com/TeTXeEa.jpg", "http://i.imgur.com/0AhFr2I.jpg", "http://i.imgur.com/YFZvVZW.jpg", "http://i.imgur.com/h9phPXy.jpg"]}
 
 function distributeImages(markerid) {
+  url markers[markerid][url]
+  sockets = io.sockets.clients(markerid)
+  for(socket in sockets){
+    sockets[socket].emit('unlockAll', spliced[url][socket])
+  }
 
-  io.sockets.in(markerid).emit('unlockAll', markers[markerid][url]);
+
   
 }
 
@@ -230,7 +236,11 @@ imgursecret = "939fc93b50671de40dbfaf8dd410cab92d133468"
 app.post('/upload_image', function(req,res,next){
   url = upload_image(req.files.image)
 })
+
+
 function upload_image(image) {
+  
+
   var client = http.createClient(80, 'https://api.imgur.com')
   var header = {"Authorization": "Client-ID "+imgurclient}
 
@@ -238,7 +248,7 @@ function upload_image(image) {
   request.write(image)
   request.on('data', function(chunk){
      console.log(chunk["link"])
-     //add api to get url
+     return chuck["link"]
   })
   request.end() 
 }
