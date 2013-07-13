@@ -85,7 +85,7 @@ io.sockets.on('connection', function (socket) {
            receiverlist.push(marker.members[member_index])
         }
      }
-     if(receiverlist.length >= 4){
+     if(receiverlist.length >= 1){
        distributeImages(marker_id)
      }
   })
@@ -189,14 +189,14 @@ server.listen(app.get('port'));
 //MARKERS API
 var markers = {}
 
-markers.first = new goodie('alcohol',37.524975368048196, -122.310791015625,'http://thinkprogress.org/wp-content/uploads/2013/02/scotch-yum.jpg');
-markers.first.members.push('Aya', 'Jordan', 'Devon');
+markers.alcohol = new goodie('alcohol',37.524975368048196, -122.310791015625,'http://thinkprogress.org/wp-content/uploads/2013/02/scotch-yum.jpg');
+markers.alcohol.members.push('Aya', 'Jordan', 'Devon');
 
-markers.second = new goodie('food',37.58594229860422, -122.49343872070312,'http://s3.amazonaws.com/cmi-niche/assets/pictures/8856/content_02-fresh2_fi.gif?1304519533');
-markers.second.members.push('ben', 'bob', 'billy');
+markers.food = new goodie('food',37.58594229860422, -122.49343872070312,'http://s3.amazonaws.com/cmi-niche/assets/pictures/8856/content_02-fresh2_fi.gif?1304519533');
+markers.food.members.push('ben', 'bob', 'billy');
 
-markers.third = new goodie("gentlemen's",37.72130604487683, -122.45361328125,'http://2.bp.blogspot.com/-Dm6EeqLTscw/T8RBSMxaz8I/AAAAAAAAA7I/0Y0IvIax4xM/s1600/Scarlett+Johansson.jpg');
-markers.third.members.push('Jay', 'Jared', 'Mayank');
+markers.gentlemens = new goodie('gentlemens',37.72130604487683, -122.45361328125,'http://2.bp.blogspot.com/-Dm6EeqLTscw/T8RBSMxaz8I/AAAAAAAAA7I/0Y0IvIax4xM/s1600/Scarlett+Johansson.jpg');
+markers.gentlemens.members.push('Jay', 'Jared', 'Mayank');
 
 function goodie (Id, latitude, longitude, url) {
   this.Id = Id; 
@@ -205,7 +205,6 @@ function goodie (Id, latitude, longitude, url) {
   this.longitude = longitude;
   this.url = url
 }
-
 
 app.get('/addMarker', function(req, res, next){
   Id = req.query.Id
@@ -217,8 +216,7 @@ app.get('/addMarker', function(req, res, next){
 
 
 function distributeImages(markerid) {
-
-  io.sockets.in(markerid).emit('unlockAll', markers[markerid][url]);
+  io.sockets.in(markerid).emit('unlockAll', markers[markerid].url);
   
 }
 
