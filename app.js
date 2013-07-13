@@ -57,10 +57,45 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('updateLocation', function (latitude,longitude) {
     //put in loation update stuff
-    for (goodie in markers) {
-      if (inRange(goodie, latitude, longitude))
-          socket.emit('enableGoodie',goodie);
-    }
+  user_id = names[socket.id]
+  latitude
+  longitude 
+  
+  mygoodie = null
+  var bestgoodie = null;
+
+  for (first in markers) {
+    bestgoodie = markers[first];
+    break;
+  }
+
+  for (itergoodie in markers){
+      curgoodie = markers[itergoodie];
+      if(curgoodie.members.indexOf(user_id) != -1){
+        mygoodie = curgoodie
+      }
+
+      if(distance(latitude,longitude,curgoodie.latitude,curgoodie.longitude) < 
+          distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude)){
+            bestgoodie = curgoodie
+      }
+  }
+
+  var enabledGoodie = null;
+  if (mygoodie && mygoodie.members) mygoodie.members.remove(user_id)
+  if (bestgoodie && 
+      bestgoodie.members && 
+      distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude) < .001) {
+        bestgoodie.members.push(user_id);
+        enabledGoodie = bestgoodie.Id;
+  }
+        
+
+  var data = {}
+  data['goodies'] = markers
+  data['enabledGoodie'] = enabledGoodie;
+  io.sockets.in(goodies[socket.id]).emit('updategoodies', json(data))
+    
   })
   
   socket.on('join', function(goodie) {
@@ -134,25 +169,28 @@ app.get('/getGoodies', function(req,res,next){
       }
 
       if(distance(latitude,longitude,curgoodie.latitude,curgoodie.longitude) < 
-          distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude)){
+         distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude)){
             bestgoodie = curgoodie
       }
   }
 
   var enabledGoodie = null;
+  var roomFull = false;
   if (mygoodie && mygoodie.members) mygoodie.members.remove(user_id)
   if (bestgoodie && 
       bestgoodie.members && 
       distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude) < .001) {
-        bestgoodie.members.push(user_id);
         enabledGoodie = bestgoodie.Id;
+        if (bestgoodie.members.length < 4) bestgoodie.members.push(user_id);
+        else roomFull = true;
   }
-        
-
+  
   var data = {}
   data['goodies'] = markers
   data['enabledGoodie'] = enabledGoodie;
+  data['roomFull'] = roomFull;
   res.json(data);
+
 });
 
 
@@ -189,14 +227,14 @@ server.listen(app.get('port'));
 //MARKERS API
 var markers = {}
 
-markers.first = new goodie('alcohol',37.524975368048196, -122.310791015625,'http://thinkprogress.org/wp-content/uploads/2013/02/scotch-yum.jpg');
-markers.first.members.push('Aya', 'Jordan', 'Devon');
+markers.alcohol = new goodie('alcohol',37.423708, -122.071039,'alcohol');
+// markers.alcohol.members.push('Aya', 'Jordan', 'Devon');
 
-markers.second = new goodie('food',37.58594229860422, -122.49343872070312,'http://s3.amazonaws.com/cmi-niche/assets/pictures/8856/content_02-fresh2_fi.gif?1304519533');
-markers.second.members.push('ben', 'bob', 'billy');
+markers.food = new goodie('food',37.58594229860422, -122.49343872070312,'http://s3.amazonaws.com/cmi-niche/assets/pictures/8856/content_02-fresh2_fi.gif?1304519533');
+// markers.food.members.push('ben', 'bob', 'billy');
 
-markers.third = new goodie("gentlemen's",37.72130604487683, -122.45361328125,'http://2.bp.blogspot.com/-Dm6EeqLTscw/T8RBSMxaz8I/AAAAAAAAA7I/0Y0IvIax4xM/s1600/Scarlett+Johansson.jpg');
-markers.third.members.push('Jay', 'Jared', 'Mayank');
+markers.gentlemens = new goodie('gentlemens',37.72130604487683, -122.45361328125,'http://2.bp.blogspot.com/-Dm6EeqLTscw/T8RBSMxaz8I/AAAAAAAAA7I/0Y0IvIax4xM/s1600/Scarlett+Johansson.jpg');
+// markers.gentlemens.members.push('Jay', 'Jared', 'Mayank');
 
 function goodie (Id, latitude, longitude, url) {
   this.Id = Id; 
@@ -206,7 +244,6 @@ function goodie (Id, latitude, longitude, url) {
   this.url = url
 }
 
-
 app.get('/addMarker', function(req, res, next){
   Id = req.query.Id
   url = req.query.url
@@ -215,38 +252,40 @@ app.get('/addMarker', function(req, res, next){
   markers[Id] = new goodie(Id, latitude, longitude, url)
 });
 
+var spliced = {"alcohol": ["http://i.imgur.com/TeTXeEa.jpg", "http://i.imgur.com/0AhFr2I.jpg", "http://i.imgur.com/YFZvVZW.jpg", "http://i.imgur.com/h9phPXy.jpg"]}
 
 function distributeImages(markerid) {
 
-  io.sockets.in(markerid).emit('unlockAll', markers[markerid][url]);
-  
+  url = markers[markerid].url;
+  sockets = io.sockets.clients(markerid)
+  for(socket in sockets){
+    sockets[socket].emit('unlockAll', spliced[url][socket])
+  }
 }
 
-
+  var http = require('http');
 //Imgur integration:
 imgurclient = "337390af437ab23"
 imgursecret = "939fc93b50671de40dbfaf8dd410cab92d133468"
 
 app.post('/upload_image', function(req,res,next){
-  console.log(req)
-  console.log(req.files)
   url = upload_image(req.files.image)
 })
+
+
 function upload_image(image) {
-  var http = require('http');
+  
+
   var client = http.createClient(80, 'https://api.imgur.com')
-  var auth = 'Basic ' + new Buffer("Client-ID" + ':' + imgurclient).toString('base64');
-  var header = {"Authorization": auth}
+  var header = {"Authorization": "Client-ID "+imgurclient}
 
   var request = client.request('POST', '/3/upload', header);
   request.write(image)
   request.on('data', function(chunk){
-     console.log(chunk["ID"])
-     //add api to get url
+     console.log(chunk["link"])
+     return chuck["link"]
   })
-  request.end()
-
-   
+  request.end() 
 }
 
 var fs = require('fs'),
