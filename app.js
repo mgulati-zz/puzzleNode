@@ -57,44 +57,42 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('updateLocation', function (latitude,longitude) {
     //put in loation update stuff
-  user_id = names[socket.id]
-  latitude
-  longitude 
-  
-  mygoodie = null
-  var bestgoodie = null;
+    user_id = names[socket.id]
+    
+    mygoodie = null
+    var bestgoodie = null;
 
-  for (first in markers) {
-    bestgoodie = markers[first];
-    break;
-  }
+    for (first in markers) {
+      bestgoodie = markers[first];
+      break;
+    }
 
-  for (itergoodie in markers){
-      curgoodie = markers[itergoodie];
-      if(curgoodie.members.indexOf(user_id) != -1){
-        mygoodie = curgoodie
-      }
+    for (itergoodie in markers){
+        curgoodie = markers[itergoodie];
+        if(curgoodie.members.indexOf(user_id) != -1){
+          mygoodie = curgoodie
+        }
 
-      if(distance(latitude,longitude,curgoodie.latitude,curgoodie.longitude) < 
-          distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude)){
-            bestgoodie = curgoodie
-      }
-  }
+        if(distance(latitude,longitude,curgoodie.latitude,curgoodie.longitude) < 
+            distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude)){
+              bestgoodie = curgoodie
+        }
+    }
 
-  var enabledGoodie = null;
-  if (mygoodie && mygoodie.members) mygoodie.members.remove(user_id)
-  if (bestgoodie && 
-      bestgoodie.members && 
-      distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude) < .001) {
-        bestgoodie.members.push(user_id);
-        enabledGoodie = bestgoodie.Id;
-  }
-        
+    var enabledGoodie = null;
+    if (mygoodie && mygoodie.members) mygoodie.members.remove(user_id)
+    if (bestgoodie && 
+        bestgoodie.members && 
+        distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude) < .001) {
+          bestgoodie.members.push(user_id);
+          enabledGoodie = bestgoodie.Id;
+    }
+          
 
-  var data = {}
-  data['goodies'] = markers
-  data['enabledGoodie'] = enabledGoodie;
-  io.sockets.in(goodies[socket.id]).emit('updategoodies', json(data))
+    var data = {}
+    data['goodies'] = markers
+    data['enabledGoodie'] = enabledGoodie;
+    io.sockets.in(goodies[socket.id]).emit('updateGoodies', json(data))
     
   })
   
@@ -223,12 +221,11 @@ function breakUpImage(imgPath) {
 server.listen(app.get('port'));
 
 
-
 //MARKERS API
 var markers = {}
 
-markers.alcohol = new goodie('alcohol',37.423708, -122.071039,'alcohol');
-// markers.alcohol.members.push('Aya', 'Jordan', 'Devon');
+markers.hackaholics = new goodie('hackaholics',37.423708, -122.071039,'hackaholics');
+// markers.hackaholics.members.push('Aya', 'Jordan', 'Devon');
 
 markers.food = new goodie('food',37.58594229860422, -122.49343872070312,'http://s3.amazonaws.com/cmi-niche/assets/pictures/8856/content_02-fresh2_fi.gif?1304519533');
 // markers.food.members.push('ben', 'bob', 'billy');
@@ -252,7 +249,7 @@ app.get('/addMarker', function(req, res, next){
   markers[Id] = new goodie(Id, latitude, longitude, url)
 });
 
-var spliced = {"alcohol": ["http://i.imgur.com/TeTXeEa.jpg", "http://i.imgur.com/0AhFr2I.jpg", "http://i.imgur.com/YFZvVZW.jpg", "http://i.imgur.com/h9phPXy.jpg"]}
+var spliced = {"hackaholics": ["http://i.imgur.com/TeTXeEa.jpg", "http://i.imgur.com/0AhFr2I.jpg", "http://i.imgur.com/YFZvVZW.jpg", "http://i.imgur.com/h9phPXy.jpg"]}
 
 function distributeImages(markerid) {
 

@@ -23,6 +23,59 @@ $(function() {
     $('#reward').attr('src',imageUrl).fadeIn(500);
   })
 
+  socket.on('personLeft', function(loser) {
+    if (goodies[$('#title').text()].members.indexOf(loser) != -1) {
+      goodies[$('#title').text()].members.splice(goodies[$('#title').text()].members.indexOf(loser),1)
+    }
+
+    showLock();
+  })
+
+  socket.on('updateGoodies', function(data) {
+    //iterate through all the markers currently in goodies
+    for (goodie in goodies) {
+      //delete markers and goodies that didnt come back
+      if (!data.goodies.hasOwnProperty(goodie)) {
+        goodies[goodie].marker.setMap(null);
+        delete goodies[goodie];
+      }
+    }
+
+    for (goodie in data.goodies) {
+      //update marker positions for existing goodies
+      if (!goodies[goodie]) goodies[goodie] = {};
+      $.extend(goodies[goodie],data.goodies[goodie]);
+      //create the marker if it doesn't already exist
+      if (!goodies[goodie].marker) 
+        goodies[goodie].marker = new google.maps.Marker({
+          animation: google.maps.Animation.DROP,
+          map: map,
+          icon: {
+            url: '/marker.png',
+            size: new google.maps.Size(250, 250),
+            origin: new google.maps.Point(0, 0),
+            anchor: new google.maps.Point(23, 38),
+            scaledSize: new google.maps.Size(45, 45)
+          }
+        });
+
+      goodies[goodie].marker.setPosition(
+        new google.maps.LatLng(
+          goodies[goodie].latitude, 
+          goodies[goodie].longitude)
+        );
+    }
+
+    if (data.enabledGoodie) {
+      if (data.roomFull) fullRoom(data.enabledGoodie); 
+      else showLock(data.enabledGoodie)
+    }
+    else {
+      clearLock();
+      socket.emit('join',null);
+    }
+  })
+
   $('#nameForm').submit(function(e) {
     e.preventDefault();
 
@@ -98,58 +151,60 @@ function updateMyLocation(myPosition) {
   myMarker.setPosition(latlng);
   myLatLng = myPosition;
 
-  data = {user_id: myName, 
-          latitude: myPosition.coords.latitude, 
-          longitude: myPosition.coords.longitude, 
-          zoom: map.getZoom() }
+  socket.emit('updateLocation',myPosition.coords.latitude, myPosition.coords.longitude);
 
-  $.get("getGoodies", data)
-    .done(function(data) {
+  // data = {user_id: myName, 
+  //         latitude: myPosition.coords.latitude, 
+  //         longitude: myPosition.coords.longitude, 
+  //         zoom: map.getZoom() }
+
+  // $.get("getGoodies", data)
+  //   .done(function(data) {
       
-      //iterate through all the markers currently in goodies
-      for (goodie in goodies) {
-        //delete markers and goodies that didnt come back
-        if (!data.goodies.hasOwnProperty(goodie)) {
-          goodies[goodie].marker.setMap(null);
-          delete goodies[goodie];
-        }
-      }
+  //     //iterate through all the markers currently in goodies
+  //     for (goodie in goodies) {
+  //       //delete markers and goodies that didnt come back
+  //       if (!data.goodies.hasOwnProperty(goodie)) {
+  //         goodies[goodie].marker.setMap(null);
+  //         delete goodies[goodie];
+  //       }
+  //     }
 
-      for (goodie in data.goodies) {
-        //update marker positions for existing goodies
-        if (!goodies[goodie]) goodies[goodie] = {};
-        $.extend(goodies[goodie],data.goodies[goodie]);
-        //create the marker if it doesn't already exist
-        if (!goodies[goodie].marker) 
-          goodies[goodie].marker = new google.maps.Marker({
-            animation: google.maps.Animation.DROP,
-            map: map,
-            icon: {
-              url: '/marker.png',
-              size: new google.maps.Size(250, 250),
-              origin: new google.maps.Point(0, 0),
-              anchor: new google.maps.Point(23, 38),
-              scaledSize: new google.maps.Size(45, 45)
-            }
-          });
+  //     for (goodie in data.goodies) {
+  //       //update marker positions for existing goodies
+  //       if (!goodies[goodie]) goodies[goodie] = {};
+  //       $.extend(goodies[goodie],data.goodies[goodie]);
+  //       //create the marker if it doesn't already exist
+  //       if (!goodies[goodie].marker) 
+  //         goodies[goodie].marker = new google.maps.Marker({
+  //           animation: google.maps.Animation.DROP,
+  //           map: map,
+  //           icon: {
+  //             url: '/marker.png',
+  //             size: new google.maps.Size(250, 250),
+  //             origin: new google.maps.Point(0, 0),
+  //             anchor: new google.maps.Point(23, 38),
+  //             scaledSize: new google.maps.Size(45, 45)
+  //           }
+  //         });
 
-        goodies[goodie].marker.setPosition(
-          new google.maps.LatLng(
-            goodies[goodie].latitude, 
-            goodies[goodie].longitude)
-          );
-      }
+  //       goodies[goodie].marker.setPosition(
+  //         new google.maps.LatLng(
+  //           goodies[goodie].latitude, 
+  //           goodies[goodie].longitude)
+  //         );
+  //     }
 
-      if (data.enabledGoodie) {
-        if (data.roomFull) fullRoom(data.enabledGoodie); 
-        else showLock(data.enabledGoodie)
-      }
-      else {
-        clearLock();
-        socket.emit('join',null);
-      }
+  //     if (data.enabledGoodie) {
+  //       if (data.roomFull) fullRoom(data.enabledGoodie); 
+  //       else showLock(data.enabledGoodie)
+  //     }
+  //     else {
+  //       clearLock();
+  //       socket.emit('join',null);
+  //     }
 
-    });  
+  //   });  
 }
 
 function fullRoom(goodie) {
