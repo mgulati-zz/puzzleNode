@@ -21,6 +21,7 @@ app.configure(function() {
   app.set('port', process.env.PORT || 80);
   app.use(express.favicon());
   app.use(app.router);
+  app.use(express.bodyParser());
   app.engine('html', require('ejs').renderFile);
   app.set('views', __dirname + '/public');
   app.set("view options", {layout: false});
@@ -78,14 +79,14 @@ io.sockets.on('connection', function (socket) {
      marker_id = goodies[socket.id]
      marker =  markers[marker_id]
      locked[user_id]= true
-     recieverlist = []
+     receiverlist = []
      for(member_index in marker.members){
         if(locked[marker.members[member_index]]){
-           recieverlist.push(members[member_index])
+           receiverlist.push(marker.members[member_index])
         }
      }
-     if(recieverlist.length >= 4){
-       distributeImages(recieverlist)
+     if(receiverlist.length >= 4){
+       distributeImages(marker_id)
      }
   })
 
@@ -206,6 +207,7 @@ function goodie (Id, latitude, longitude, url) {
   this.url = url
 }
 
+
 app.get('/addMarker', function(req, res, next){
   Id = req.query.Id
   url = req.query.url
@@ -215,7 +217,40 @@ app.get('/addMarker', function(req, res, next){
 });
 
 
-function distributeImages(recieverlist) {
+function distributeImages(markerid) {
+
+  io.sockets.in(markerid).emit('unlockAll', markers[markerid][url]);
+  
+}
+
+
+//Imgur integration:
+imgurclient = "337390af437ab23"
+imgursecret = "939fc93b50671de40dbfaf8dd410cab92d133468"
+
+app.post('/upload_image', function(req,res,next){
+  console.log(req)
+  console.log(req.files)
+  url = upload_image(req.files.image)
+})
+function upload_image(image) {
+  var http = require('http');
+  var client = http.createClient(80, 'https://api.imgur.com')
+  var auth = 'Basic ' + new Buffer("Client-ID" + ':' + imgurclient).toString('base64');
+  var header = {"Authorization": auth}
+
+  var request = client.request('POST', '/3/upload', header);
+  request.write(image)
+  request.on('data', function(chunk){
+     console.log(chunk["ID"])
+     //add api to get url
+  })
+  request.end()
+
+   
+}
+
+function download_image(url) {
 
 }
 
