@@ -110,8 +110,8 @@ function updateMyLocation(myPosition) {
 
         goodies[goodie].marker.setPosition(
           new google.maps.LatLng(
-            goodies[goodie].location.latitude, 
-            goodies[goodie].location.longitude)
+            goodies[goodie].latitude, 
+            goodies[goodie].longitude)
           );
       }
 

@@ -1,3 +1,5 @@
+//http://afternoon-castle-8471.herokuapp.com
+
 var express = require('express');
 
 var app = express(),
@@ -31,15 +33,25 @@ io.configure(function () {
   io.set('authorization', function (handshakeData, callback) {
     callback(null, true); 
   });
-
 });
 
+function goodie (latitude, longitude) {
+  this.members = [];
+  this.latitude = latitude;
+  this.longitude = longitude;
+}
+
 //the entire database is just javascript variables
-var friends = {};
-var colors = {};
-var rooms = {};
-var destination = {};
-var userCount = 0;
+var markers = {}
+
+markers.first = new goodie(37.524975368048196, -122.310791015625);
+markers.first.members.push('Aya', 'Jordan', 'Devon');
+
+markers.second = new goodie(37.58594229860422, -122.49343872070312);
+markers.second.members.push('ben', 'bob', 'billy');
+
+markers.third = new goodie(37.72130604487683, -122.45361328125);
+markers.third.members.push('Jay', 'Jared', 'Mayank', 'sex');
 
 io.sockets.on('connection', function (socket) {
   console.log(socket.id);
@@ -52,41 +64,16 @@ app.get('/', function(req, res, next){
 });
 
 app.get('/getGoodies', function(req,res,next){
-  data = {
-    'goodies': {
-      'first' : {
-        'description': 'this is the first marker',
-        'members': ['Aya', 'Jordan', 'Devon'],
-        'location': {
-          'latitude' : 37.524975368048196,
-          'longitude' : -122.310791015625
-        }
-      },
-      'second': {
-        'description': 'this is the second marker',
-        'members': ['ben', 'bob', 'billy'],
-        'location': {
-          'latitude' : 37.58594229860422,
-          'longitude' : -122.49343872070312
-        }
-      },
-      'third': {
-        'description': 'this is the third marker',
-        'members': ['Jay', 'Jared', 'Mayank', "Sex"],
-        'location': { 
-          'latitude' : 37.72130604487683,
-          'longitude' : -122.45361328125
-        }
-      }
-    }
-  }
+  
+  var data = {}
+  data['goodies'] = markers;
 
   latitude = req.query.latitude
   longitude = req.query.longitude
 
   for (goodie in data['goodies']) {
-    if (Math.abs(data['goodies'][goodie]['location']['latitude'] - (latitude)) < 0.03 &&
-        Math.abs(data['goodies'][goodie]['location']['longitude'] - (longitude)) < 0.03)
+    if (Math.abs(data.goodies[goodie]['latitude'] - (latitude)) < 0.03 &&
+        Math.abs(data.goodies[goodie]['longitude'] - (longitude)) < 0.03)
           data['enabledGoodie'] = goodie
   }
 
