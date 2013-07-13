@@ -1,5 +1,14 @@
 //http://afternoon-castle-8471.herokuapp.com
 
+
+///Bullshit prototype
+Array.prototype.remove = function(from, to) {
+  var rest = this.slice((to || from) + 1 || this.length);
+  this.length = from < 0 ? this.length + from : from;
+  return this.push.apply(this, rest);
+};
+
+
 var express = require('express');
 
 var app = express(),
@@ -35,27 +44,55 @@ io.configure(function () {
   });
 });
 
-function goodie (latitude, longitude) {
-  this.members = [];
-  this.latitude = latitude;
-  this.longitude = longitude;
-}
 
 //the entire database is just javascript variables
-var markers = {}
-
-markers.first = new goodie(37.524975368048196, -122.310791015625);
-markers.first.members.push('Aya', 'Jordan', 'Devon');
-
-markers.second = new goodie(37.58594229860422, -122.49343872070312);
-markers.second.members.push('ben', 'bob', 'billy');
-
-markers.third = new goodie(37.72130604487683, -122.45361328125);
-markers.third.members.push('Jay', 'Jared', 'Mayank', 'sex');
+var markers = {};
+var names = {};
+var goodies = {};
 
 io.sockets.on('connection', function (socket) {
-  console.log(socket.id);
+  
+  socket.on('name', function(userId) {
+    names[socket.id] = userId;
+  })
+
+  socket.on('updateLocation', function (latitude,longitude) {
+    //put in loation update stuff
+    for (goodie in markers) {
+      if (inRange(goodie, latitude, longitude))
+          socket.emit('enableGoodie',goodie);
+  })
+  
+  socket.on('join', function(goodie) {
+    for (i in io.sockets.manager.roomClients[socket.id])
+      if (io.sockets.manager.roomClients[socket.id][i] != "")
+        socket.leave(io.sockets.manager.roomClients[socket.id][i]);
+    
+    socket.join(goodie);
+    goodies[socket.id] = goodie;
+    if (!($.inArray(names[socket.id], markers[goodie].members)))
+      markers[goodie].members.push(names[socket.id]);
+  })
+  
+  socket.on('unlock', function() {
+
+  })
+
+  socket.on('disconnect', function () {
+    if (goodies[socket.id] && markers[goodies[socket.id]].memebrs.indexOf(names[socket.id]) != -1)
+      markers[goodies[socket.id]].memebrs.splice(markers[goodies[socket.id]].memebrs.indexOf(names[socket.id]),1)
+    delete names[socket.id];
+    io.sockets.in(goodies[socket.id]).emit('personLeft', names[socket.id]);
+    delete goodies[socket.id];
+  });
+
 });
+
+var checkRange = 0.03;
+function inRange(goodie, latitude, longitude) {
+  return (Math.abs(markers[goodie]['latitude'] - latitude) < checkRange &&
+          Math.abs(markers[goodie]['longitude'] - longitude) < checkRange)  
+}
 
 //routing, if css and javascript send file, otherwise render the page
 app.get('/', function(req, res, next){
@@ -63,22 +100,40 @@ app.get('/', function(req, res, next){
   else res.render('index.html');
 });
 
+//Update users
 app.get('/getGoodies', function(req,res,next){
   
-  var data = {}
-  data['goodies'] = markers;
 
+  function distance(x1,y1,x2,y2){
+    return Math.sqrt(Math.exp((x1-x2),2) + Math.exp((y1-y2),2))
+  }
+
+
+  user_id = req.query.user_id
   latitude = req.query.latitude
   longitude = req.query.longitude
-
-  for (goodie in data['goodies']) {
-    if (Math.abs(data.goodies[goodie]['latitude'] - (latitude)) < 0.03 &&
-        Math.abs(data.goodies[goodie]['longitude'] - (longitude)) < 0.03)
-          data['enabledGoodie'] = goodie
+  
+  mygoodie = null
+  bestgoodie = markers[0]
+  for (curgoodie in markers){
+      if(user_id in goodie.members){
+        mygoodie= curgoodie
+      }
+      if(distance(latitude,longitude,curgoodie.latitude,curgoodie.longitude) < distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude)){
+        bestgoodie = curgoodie
+      }
   }
+
+  mygoodie.members.remove(user_id)
+  bestgoodie.members.push(user_id)
+
+  var data = {}
+  data['goodies'] = markers
+  data['enabledGoodie'] = bestgoodie
 
   res.json(data);
 });
+
 
 var corners = ['NorthEast','SouthEast','SouthWest','NorthWest']
 
@@ -105,4 +160,32 @@ for (var i = 0; i <= 4; i++)
   
 }
 
+
 server.listen(app.get('port'));
+
+
+
+//MARKERS API
+var markers = {}
+
+function goodie (Id, latitude, longitude, url) {
+  this.Id = Id; 
+  this.members = [];
+  this.latitude = latitude;
+  this.longitude = longitude;
+  this.url = url
+}
+
+app.get('/addMarker', function(req, res, next){
+  Id = req.query.Id
+  url = req.query.url
+  latitude = req.query.latitude
+  longitude = req.query.longitude
+  markers.id = new goodie(Id, latitude, longitude, url)
+});
+
+
+
+
+
+
