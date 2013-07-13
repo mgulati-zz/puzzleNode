@@ -1,0 +1,24 @@
+{
+  "name": "puzzles",
+  "author": "m",
+  "version": "0.0.3",
+  "private": true,
+  "dependencies": {
+    "express": "~3.2.6",
+    "node-gcm": "~0.9.6",
+    "socket.io": "~0.9.16",
+    "ejs":"*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mgulati/puzzlesnode.git"
+  },
+  "engines": {
+    "node": "0.10.12",
+    "npm": "1.2.30"
+  },
+  "subdomain": "puzzles",
+  "scripts": {
+    "start": "app.js"
+  }
+}
