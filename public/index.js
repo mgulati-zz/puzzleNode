@@ -19,7 +19,7 @@ $(function() {
 
   socket = io.connect(window.location.hostname, {'sync disconnect on unload' : true});
   socket.on('unlockAll', function(imageUrl) {
-    showHeader('All your friends have unlocked, retreiving reward...' + imageUrl);
+    showHeader('All your friends have unlocked, retreiving reward...');
     $('#reward').attr('src',imageUrl).fadeIn(500);
   })
 
@@ -123,7 +123,14 @@ function updateMyLocation(myPosition) {
         if (!goodies[goodie].marker) 
           goodies[goodie].marker = new google.maps.Marker({
             animation: google.maps.Animation.DROP,
-            map: map
+            map: map,
+            icon: {
+              url: '/marker.png',
+              size: new google.maps.Size(250, 250),
+              origin: new google.maps.Point(0, 0),
+              anchor: new google.maps.Point(23, 38),
+              scaledSize: new google.maps.Size(45, 45)
+            }
           });
 
         goodies[goodie].marker.setPosition(
@@ -134,7 +141,8 @@ function updateMyLocation(myPosition) {
       }
 
       if (data.enabledGoodie) {
-        showLock(data.enabledGoodie)
+        if (data.roomFull) fullRoom(data.enabledGoodie); 
+        else showLock(data.enabledGoodie)
       }
       else {
         clearLock();
@@ -144,27 +152,49 @@ function updateMyLocation(myPosition) {
     });  
 }
 
-function showLock(goodie) {
-  socket.emit('join',goodie);
+function fullRoom(goodie) {
   lock.addClass('opaque');
+  lock.addClass('noClick');
+  lock.removeClass('unLock unLocked');
   $('#title').text(goodie);
   
   var memberList = "";
   for (member in goodies[goodie].members) {
-    memberList += goodies[goodie].members[member] + ", "
+    memberList += goodies[goodie].members[member] + "<br/>"
   }
-  if (memberList.length > 1) memberList = memberList.substring(0, memberList.length - 2)
-  $('#members').text(memberList);
+  if (memberList.length > 4) memberList = memberList.substring(0, memberList.length - 5);
+  $('#members').html(memberList);
+  showHeader('Sorry, this goodie is already full');
+  socket.emit('join',null);
+}
+
+function showLock(goodie) {
+  $('#title').text(goodie);
+  socket.emit('join',goodie);
+  lock.addClass('opaque');
+  lock.removeClass('noClick');
+  if (goodies[$('#title').text()].members.length == 4) lock.addClass('unLock');
+  else lock.removeClass('unLock unLocked')
+  
+  var memberList = "";
+  for (member in goodies[goodie].members) {
+    memberList += goodies[goodie].members[member] + "<br/>"
+  }
+  if (memberList.length > 4) memberList = memberList.substring(0, memberList.length - 5)
+  $('#members').html(memberList);
 }
 
 function hideLock () {
-  $('#lock').removeClass('opaque');
+  lock.removeClass('opaque');
+  lock.removeClass('unLock unLocked');
 }
 
 function unlock() {
   if (goodies[$('#title').text()].members.length == 4) {
     socket.emit('unlock');
     showHeader('Waiting on the others to unlock')
+    lock.removeClass('unLock');
+    lock.addClass('unLocked');
   }
   else {
     showHeader('You must have four adventurers to unlock')

@@ -120,7 +120,7 @@ io.sockets.on('connection', function (socket) {
            receiverlist.push(marker.members[member_index])
         }
      }
-     if(receiverlist.length >= 1){
+     if(receiverlist.length >= 4){
        distributeImages(marker_id)
      }
   })
@@ -169,25 +169,28 @@ app.get('/getGoodies', function(req,res,next){
       }
 
       if(distance(latitude,longitude,curgoodie.latitude,curgoodie.longitude) < 
-          distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude)){
+         distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude)){
             bestgoodie = curgoodie
       }
   }
 
   var enabledGoodie = null;
+  var roomFull = false;
   if (mygoodie && mygoodie.members) mygoodie.members.remove(user_id)
   if (bestgoodie && 
       bestgoodie.members && 
       distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude) < .001) {
-        bestgoodie.members.push(user_id);
         enabledGoodie = bestgoodie.Id;
+        if (bestgoodie.members.length < 4) bestgoodie.members.push(user_id);
+        else roomFull = true;
   }
-        
-
+  
   var data = {}
   data['goodies'] = markers
   data['enabledGoodie'] = enabledGoodie;
+  data['roomFull'] = roomFull;
   res.json(data);
+
 });
 
 
@@ -224,16 +227,14 @@ server.listen(app.get('port'));
 //MARKERS API
 var markers = {}
 
-
-markers.first = new goodie('alcohol',37.423708, -122.071039,'alcohol');
-markers.first.members.push('Aya', 'Jordan', 'Devon');
-
+markers.alcohol = new goodie('alcohol',37.423708, -122.071039,'alcohol');
+// markers.alcohol.members.push('Aya', 'Jordan', 'Devon');
 
 markers.food = new goodie('food',37.58594229860422, -122.49343872070312,'http://s3.amazonaws.com/cmi-niche/assets/pictures/8856/content_02-fresh2_fi.gif?1304519533');
-markers.food.members.push('ben', 'bob', 'billy');
+// markers.food.members.push('ben', 'bob', 'billy');
 
 markers.gentlemens = new goodie('gentlemens',37.72130604487683, -122.45361328125,'http://2.bp.blogspot.com/-Dm6EeqLTscw/T8RBSMxaz8I/AAAAAAAAA7I/0Y0IvIax4xM/s1600/Scarlett+Johansson.jpg');
-markers.gentlemens.members.push('Jay', 'Jared', 'Mayank');
+// markers.gentlemens.members.push('Jay', 'Jared', 'Mayank');
 
 function goodie (Id, latitude, longitude, url) {
   this.Id = Id; 
@@ -255,15 +256,11 @@ var spliced = {"alcohol": ["http://i.imgur.com/TeTXeEa.jpg", "http://i.imgur.com
 
 function distributeImages(markerid) {
 
-  url = markers[markerid]["url"]
+  url = markers[markerid].url;
   sockets = io.sockets.clients(markerid)
   for(socket in sockets){
     sockets[socket].emit('unlockAll', spliced[url][socket])
   }
-
-
-
-  
 }
 
   var http = require('http');
