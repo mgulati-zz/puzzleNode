@@ -80,4 +80,29 @@ app.get('/getGoodies', function(req,res,next){
   res.json(data);
 });
 
+var corners = ['NorthEast','SouthEast','SouthWest','NorthWest']
+
+var img = require('imagemagick');
+
+function breakUpImage(imgPath) {
+img.readMetadata(imgPath, function(error, metadata){
+  if (error) throw error;
+  console.log('Halted at ' + metadata.exif.dateTimeOriginal);
+})
+
+for (var i = 0; i <= 4; i++)
+  img.crop({
+    srcPath: imgPath,
+    dstPath: 'crop'+i+'.jpg',
+    width: (meta.width)/2,
+    height: (meta.height)/2,
+    quality: 1,
+    gravity: corners[i]
+  }, function(error, stdout, stderror){
+
+  });
+
+  
+}
+
 server.listen(app.get('port'));
