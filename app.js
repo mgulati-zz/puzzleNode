@@ -64,8 +64,8 @@ io.sockets.on('connection', function (socket) {
   socket.on('updateLocation', function (latitude,longitude) {
     
     for (goodie in markers) {
-      if (inRange(goodie, req.query.latitude, req.query.longitude))
-          data['enabledGoodie'] = goodie
+      if (inRange(goodie, latitude, longitude))
+          socket.emit('enableGoodie',goodie);
   })
   
   socket.on('join', function(goodie) {
