@@ -46,7 +46,6 @@ io.configure(function () {
 
 
 //the entire database is just javascript variables
-var markers = {};
 var names = {};
 var goodies = {};
 
@@ -61,6 +60,7 @@ io.sockets.on('connection', function (socket) {
     for (goodie in markers) {
       if (inRange(goodie, latitude, longitude))
           socket.emit('enableGoodie',goodie);
+    }
   })
   
   socket.on('join', function(goodie) {
@@ -70,7 +70,7 @@ io.sockets.on('connection', function (socket) {
     
     socket.join(goodie);
     goodies[socket.id] = goodie;
-    if (!($.inArray(names[socket.id], markers[goodie].members)))
+    if (markers[goodie] && markers[goodie].members.indexOf(names[socket.id]) == -1)
       markers[goodie].members.push(names[socket.id]);
   })
   
@@ -79,8 +79,9 @@ io.sockets.on('connection', function (socket) {
   })
 
   socket.on('disconnect', function () {
-    if (goodies[socket.id] && markers[goodies[socket.id]].memebrs.indexOf(names[socket.id]) != -1)
-      markers[goodies[socket.id]].memebrs.splice(markers[goodies[socket.id]].memebrs.indexOf(names[socket.id]),1)
+    if (goodies[socket.id] && markers[goodies[socket.id]] && 
+      markers[goodies[socket.id]].members.indexOf(names[socket.id]) != -1)
+      markers[goodies[socket.id]].members.splice(markers[goodies[socket.id]].memebrs.indexOf(names[socket.id]),1)
     delete names[socket.id];
     io.sockets.in(goodies[socket.id]).emit('personLeft', names[socket.id]);
     delete goodies[socket.id];
@@ -102,34 +103,39 @@ app.get('/', function(req, res, next){
 
 //Update users
 app.get('/getGoodies', function(req,res,next){
-  
 
   function distance(x1,y1,x2,y2){
     return Math.sqrt(Math.exp((x1-x2),2) + Math.exp((y1-y2),2))
   }
-
 
   user_id = req.query.user_id
   latitude = req.query.latitude
   longitude = req.query.longitude
   
   mygoodie = null
-  bestgoodie = markers[0]
+  var bestgoodie = null;
+
+  for (first in markers) {
+    bestgoodie = markers[first];
+    break;
+  }
+
   for (curgoodie in markers){
-      if(user_id in goodie.members){
+      if(markers[curgoodie].members.indexOf(user_id) != -1){
         mygoodie= curgoodie
       }
+
       if(distance(latitude,longitude,curgoodie.latitude,curgoodie.longitude) < distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude)){
         bestgoodie = curgoodie
       }
   }
 
-  mygoodie.members.remove(user_id)
-  bestgoodie.members.push(user_id)
+  if (mygoodie && mygoodie.members) mygoodie.members.remove(user_id)
+  if (bestgoodie && bestgoodie.members) bestgoodie.members.push(user_id)
 
   var data = {}
   data['goodies'] = markers
-  data['enabledGoodie'] = bestgoodie
+  data['enabledGoodie'] = bestgoodie.Id
 
   res.json(data);
 });
@@ -167,6 +173,15 @@ server.listen(app.get('port'));
 
 //MARKERS API
 var markers = {}
+
+markers.first = new goodie('first',37.524975368048196, -122.310791015625,null);
+markers.first.members.push('Aya', 'Jordan', 'Devon');
+
+markers.second = new goodie('second',37.58594229860422, -122.49343872070312,null);
+markers.second.members.push('ben', 'bob', 'billy');
+
+markers.third = new goodie('third',37.72130604487683, -122.45361328125,null);
+markers.third.members.push('Jay', 'Jared', 'Mayank', 'sex');
 
 function goodie (Id, latitude, longitude, url) {
   this.Id = Id; 

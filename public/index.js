@@ -80,7 +80,7 @@ function updateMyLocation(myPosition) {
   myMarker.setPosition(latlng);
   myLatLng = myPosition;
 
-  data = {name: myName, 
+  data = {user_id: myName, 
           latitude: myPosition.coords.latitude, 
           longitude: myPosition.coords.longitude, 
           zoom: map.getZoom() }
