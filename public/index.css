@@ -7,13 +7,13 @@ html{
 
 @media (min-width: 601px) {
   body {
-    background: url('splash.jpg') repeat-x;
+    background: url('splash.jpg') no-repeat center;
   }
 }
 
 @media (max-width: 600px) {
   body {      
-     background: url('splash-mobile.jpg') repeat-x;
+     background: url('splash-mobile.jpg') no-repeat center;
   }
 }
 
