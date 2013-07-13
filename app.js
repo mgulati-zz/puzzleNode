@@ -102,10 +102,10 @@ io.sockets.on('connection', function (socket) {
 });
 
 var checkRange = 0.03;
-function inRange(goodie, latitude, longitude) {
-  return (Math.abs(markers[goodie]['latitude'] - latitude) < checkRange &&
-          Math.abs(markers[goodie]['longitude'] - longitude) < checkRange)  
-}
+// function inRange(goodie, latitude, longitude) {
+//   return (Math.abs(markers[goodie]['latitude'] - latitude) < checkRange &&
+//           Math.abs(markers[goodie]['longitude'] - longitude) < checkRange)  
+// }
 
 //routing, if css and javascript send file, otherwise render the page
 app.get('/', function(req, res, next){
@@ -138,9 +138,12 @@ app.get('/getGoodies', function(req,res,next){
         mygoodie = curgoodie
       }
 
-      if(distance(latitude,longitude,curgoodie.latitude,curgoodie.longitude) < distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude)){
+      if(distance(latitude,longitude,curgoodie.latitude,curgoodie.longitude) < 
+          distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude)){
         bestgoodie = curgoodie
       }
+      console.log(distance(latitude,longitude,curgoodie.latitude,curgoodie.longitude));
+      // if(distance(lattitude,longitude,curgoodie.latitude,curgoodie.longitude) < )
   }
 
   if (mygoodie && mygoodie.members) mygoodie.members.remove(user_id)
@@ -159,25 +162,24 @@ var corners = ['NorthEast','SouthEast','SouthWest','NorthWest']
 var img = require('imagemagick');
 
 function breakUpImage(imgPath) {
-img.readMetadata(imgPath, function(error, metadata){
-  if (error) throw error;
-  console.log('Halted at ' + metadata.exif.dateTimeOriginal);
-})
+  img.readMetadata(imgPath, function(error, metadata){
+    if (error) throw error;
+    console.log('Halted at ' + metadata.exif.dateTimeOriginal);
+  })
 
-for (var i = 0; i <= 4; i++)
-  img.crop({
-    srcPath: imgPath,
-    dstPath: 'crop'+i+'.jpg',
-    width: (metadata.width)/2,
-    height: (metadata.height)/2,
-    quality: 1,
-    gravity: corners[i]
-  }, function(error, stdout, stderror){
+  for (var i = 0; i <= 4; i++)
+    img.crop({
+      srcPath: imgPath,
+      dstPath: 'crop'+i+'.jpg',
+      width: (metadata.width)/2,
+      height: (metadata.height)/2,
+      quality: 1,
+      gravity: corners[i]
+    }, function(error, stdout, stderror){
 
-  });
+    });
 
- //load files, send them out, and delete them
-  
+  //load files, send them out, and delete them 
 }
 
 
