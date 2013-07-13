@@ -18,11 +18,9 @@ var styles = [
 $(function() {
 
   socket = io.connect(window.location.hostname, {'sync disconnect on unload' : true});
-  socket.on('unlockAll', function() {
-    showHeader('All your friends have unlocked, retreiving reward...');
-    $.get("getReward", data).done(function(data) {
-      alert('throwImageHere');
-    })
+  socket.on('unlockAll', function(imageUrl) {
+    showHeader('All your friends have unlocked, retreiving reward...' + imageUrl);
+    $('#reward').attr('src',imageUrl).fadeIn(500);
   })
 
   $('#nameForm').submit(function(e) {

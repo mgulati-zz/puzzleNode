@@ -85,7 +85,7 @@ io.sockets.on('connection', function (socket) {
            receiverlist.push(marker.members[member_index])
         }
      }
-     if(receiverlist.length >= 4){
+     if(receiverlist.length >= 1){
        distributeImages(marker_id)
      }
   })
@@ -189,14 +189,16 @@ server.listen(app.get('port'));
 //MARKERS API
 var markers = {}
 
+
 markers.first = new goodie('alcohol',37.423708, -122.071039,'http://static.desktopnexus.com/wallpaper/970047-1680x1050-[DesktopNexus.com].jpg?st=daEeje9sE5NxBo2csLubVg&e=1373749725');
 markers.first.members.push('Aya', 'Jordan', 'Devon');
 
-markers.second = new goodie('food',37.58594229860422, -122.49343872070312,'http://s3.amazonaws.com/cmi-niche/assets/pictures/8856/content_02-fresh2_fi.gif?1304519533');
-markers.second.members.push('ben', 'bob', 'billy');
 
-markers.third = new goodie("gentlemen's",37.72130604487683, -122.45361328125,'http://2.bp.blogspot.com/-Dm6EeqLTscw/T8RBSMxaz8I/AAAAAAAAA7I/0Y0IvIax4xM/s1600/Scarlett+Johansson.jpg');
-markers.third.members.push('Jay', 'Jared', 'Mayank');
+markers.food = new goodie('food',37.58594229860422, -122.49343872070312,'http://s3.amazonaws.com/cmi-niche/assets/pictures/8856/content_02-fresh2_fi.gif?1304519533');
+markers.food.members.push('ben', 'bob', 'billy');
+
+markers.gentlemens = new goodie('gentlemens',37.72130604487683, -122.45361328125,'http://2.bp.blogspot.com/-Dm6EeqLTscw/T8RBSMxaz8I/AAAAAAAAA7I/0Y0IvIax4xM/s1600/Scarlett+Johansson.jpg');
+markers.gentlemens.members.push('Jay', 'Jared', 'Mayank');
 
 function goodie (Id, latitude, longitude, url) {
   this.Id = Id; 
@@ -205,7 +207,6 @@ function goodie (Id, latitude, longitude, url) {
   this.longitude = longitude;
   this.url = url
 }
-
 
 app.get('/addMarker', function(req, res, next){
   Id = req.query.Id
@@ -218,11 +219,13 @@ app.get('/addMarker', function(req, res, next){
 var spliced = {"http://static.desktopnexus.com/wallpaper/970047-1680x1050-[DesktopNexus.com].jpg?st=daEeje9sE5NxBo2csLubVg&e=1373749725": ["http://i.imgur.com/TeTXeEa.jpg", "http://i.imgur.com/0AhFr2I.jpg", "http://i.imgur.com/YFZvVZW.jpg", "http://i.imgur.com/h9phPXy.jpg"]}
 
 function distributeImages(markerid) {
+
   url markers[markerid][url]
   sockets = io.sockets.clients(markerid)
   for(socket in sockets){
     sockets[socket].emit('unlockAll', spliced[url][socket])
   }
+
 
 
   
