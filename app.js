@@ -81,7 +81,7 @@ io.sockets.on('connection', function (socket) {
      recieverlist = []
      for(member_index in marker.members){
         if(locked[marker.members[member_index]]){
-           recieverlist.push(members[member_index])
+           recieverlist.push(marker.members[member_index])
         }
      }
      if(recieverlist.length >= 4){
@@ -100,12 +100,6 @@ io.sockets.on('connection', function (socket) {
   });
 
 });
-
-var checkRange = 0.03;
-// function inRange(goodie, latitude, longitude) {
-//   return (Math.abs(markers[goodie]['latitude'] - latitude) < checkRange &&
-//           Math.abs(markers[goodie]['longitude'] - longitude) < checkRange)  
-// }
 
 //routing, if css and javascript send file, otherwise render the page
 app.get('/', function(req, res, next){
@@ -144,14 +138,19 @@ app.get('/getGoodies', function(req,res,next){
       }
   }
 
+  var enabledGoodie = null;
   if (mygoodie && mygoodie.members) mygoodie.members.remove(user_id)
-  if (bestgoodie && bestgoodie.members && 
-      if(distance(lattitude,longitude,bestgoodie.latitude,bestgoodie.longitude) < .001)) 
-        bestgoodie.members.push(user_id)
+  if (bestgoodie && 
+      bestgoodie.members && 
+      distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude) < .001) {
+        bestgoodie.members.push(user_id);
+        enabledGoodie = bestgoodie.Id;
+  }
+        
 
   var data = {}
   data['goodies'] = markers
-  data['enabledGoodie'] = bestgoodie.Id
+  data['enabledGoodie'] = enabledGoodie;
   res.json(data);
 });
 
