@@ -118,7 +118,7 @@ app.get('/', function(req, res, next){
 app.get('/getGoodies', function(req,res,next){
 
   function distance(x1,y1,x2,y2){
-    return Math.sqrt(Math.exp((x1-x2),2) + Math.exp((y1-y2),2))
+    return Math.sqrt(Math.pow((x1-x2),2) + Math.pow((y1-y2),2))
   }
 
   user_id = req.query.user_id
@@ -141,19 +141,18 @@ app.get('/getGoodies', function(req,res,next){
 
       if(distance(latitude,longitude,curgoodie.latitude,curgoodie.longitude) < 
           distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude)){
-        bestgoodie = curgoodie
+            bestgoodie = curgoodie
       }
-      console.log(distance(latitude,longitude,curgoodie.latitude,curgoodie.longitude));
-      // if(distance(lattitude,longitude,curgoodie.latitude,curgoodie.longitude) < )
   }
 
   if (mygoodie && mygoodie.members) mygoodie.members.remove(user_id)
-  if (bestgoodie && bestgoodie.members) bestgoodie.members.push(user_id)
+  if (bestgoodie && bestgoodie.members && 
+      if(distance(lattitude,longitude,bestgoodie.latitude,bestgoodie.longitude) < .001)) 
+        bestgoodie.members.push(user_id)
 
   var data = {}
   data['goodies'] = markers
   data['enabledGoodie'] = bestgoodie.Id
-
   res.json(data);
 });
 
