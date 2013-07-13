@@ -85,7 +85,7 @@ io.sockets.on('connection', function (socket) {
         }
      }
      if(recieverlist.length >= 4){
-      distributeImages(recieverlist)
+       distributeImages(recieverlist)
      }
   })
 
@@ -93,10 +93,11 @@ io.sockets.on('connection', function (socket) {
     if (goodies[socket.id] && markers[goodies[socket.id]] && 
         markers[goodies[socket.id]].members.indexOf(names[socket.id]) != -1)
           markers[goodies[socket.id]].members.splice(markers[goodies[socket.id]].memebrs.indexOf(names[socket.id]),1)
-    
+    user_id = names[socket.id]
     delete names[socket.id];
     io.sockets.in(goodies[socket.id]).emit('personLeft', names[socket.id]);
     delete goodies[socket.id];
+    delete locked[user_id]
   });
 
 });
@@ -168,14 +169,15 @@ for (var i = 0; i <= 4; i++)
   img.crop({
     srcPath: imgPath,
     dstPath: 'crop'+i+'.jpg',
-    width: (meta.width)/2,
-    height: (meta.height)/2,
+    width: (metadata.width)/2,
+    height: (metadata.height)/2,
     quality: 1,
     gravity: corners[i]
   }, function(error, stdout, stderror){
 
   });
 
+ //load files, send them out, and delete them
   
 }
 
@@ -212,6 +214,10 @@ app.get('/addMarker', function(req, res, next){
   markers.id = new goodie(Id, latitude, longitude, url)
 });
 
+
+function distributeImages(recieverlist) {
+
+}
 
 
 
