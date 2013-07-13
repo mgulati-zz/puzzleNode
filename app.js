@@ -80,8 +80,9 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('disconnect', function () {
     if (goodies[socket.id] && markers[goodies[socket.id]] && 
-      markers[goodies[socket.id]].members.indexOf(names[socket.id]) != -1)
-      markers[goodies[socket.id]].members.splice(markers[goodies[socket.id]].memebrs.indexOf(names[socket.id]),1)
+        markers[goodies[socket.id]].members.indexOf(names[socket.id]) != -1)
+          markers[goodies[socket.id]].members.splice(markers[goodies[socket.id]].memebrs.indexOf(names[socket.id]),1)
+    
     delete names[socket.id];
     io.sockets.in(goodies[socket.id]).emit('personLeft', names[socket.id]);
     delete goodies[socket.id];
@@ -120,9 +121,10 @@ app.get('/getGoodies', function(req,res,next){
     break;
   }
 
-  for (curgoodie in markers){
-      if(markers[curgoodie].members.indexOf(user_id) != -1){
-        mygoodie= curgoodie
+  for (itergoodie in markers){
+      curgoodie = markers[itergoodie];
+      if(curgoodie.members.indexOf(user_id) != -1){
+        mygoodie = curgoodie
       }
 
       if(distance(latitude,longitude,curgoodie.latitude,curgoodie.longitude) < distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude)){
@@ -181,7 +183,7 @@ markers.second = new goodie('second',37.58594229860422, -122.49343872070312,null
 markers.second.members.push('ben', 'bob', 'billy');
 
 markers.third = new goodie('third',37.72130604487683, -122.45361328125,null);
-markers.third.members.push('Jay', 'Jared', 'Mayank', 'sex');
+markers.third.members.push('Jay', 'Jared', 'Mayank');
 
 function goodie (Id, latitude, longitude, url) {
   this.Id = Id; 
