@@ -222,31 +222,25 @@ function distributeImages(markerid) {
   
 }
 
-
+  var http = require('http');
 //Imgur integration:
 imgurclient = "337390af437ab23"
 imgursecret = "939fc93b50671de40dbfaf8dd410cab92d133468"
 
 app.post('/upload_image', function(req,res,next){
-  console.log(req)
-  console.log(req.files)
   url = upload_image(req.files.image)
 })
 function upload_image(image) {
-  var http = require('http');
   var client = http.createClient(80, 'https://api.imgur.com')
-  var auth = 'Basic ' + new Buffer("Client-ID" + ':' + imgurclient).toString('base64');
-  var header = {"Authorization": auth}
+  var header = {"Authorization": "Client-ID "+imgurclient}
 
   var request = client.request('POST', '/3/upload', header);
   request.write(image)
   request.on('data', function(chunk){
-     console.log(chunk["ID"])
+     console.log(chunk["link"])
      //add api to get url
   })
-  request.end()
-
-   
+  request.end() 
 }
 
 function download_image(url) {
