@@ -57,10 +57,45 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('updateLocation', function (latitude,longitude) {
     //put in loation update stuff
-    for (goodie in markers) {
-      if (inRange(goodie, latitude, longitude))
-          socket.emit('enableGoodie',goodie);
-    }
+  user_id = names[socket.id]
+  latitude
+  longitude 
+  
+  mygoodie = null
+  var bestgoodie = null;
+
+  for (first in markers) {
+    bestgoodie = markers[first];
+    break;
+  }
+
+  for (itergoodie in markers){
+      curgoodie = markers[itergoodie];
+      if(curgoodie.members.indexOf(user_id) != -1){
+        mygoodie = curgoodie
+      }
+
+      if(distance(latitude,longitude,curgoodie.latitude,curgoodie.longitude) < 
+          distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude)){
+            bestgoodie = curgoodie
+      }
+  }
+
+  var enabledGoodie = null;
+  if (mygoodie && mygoodie.members) mygoodie.members.remove(user_id)
+  if (bestgoodie && 
+      bestgoodie.members && 
+      distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude) < .001) {
+        bestgoodie.members.push(user_id);
+        enabledGoodie = bestgoodie.Id;
+  }
+        
+
+  var data = {}
+  data['goodies'] = markers
+  data['enabledGoodie'] = enabledGoodie;
+  io.sockets.in(goodies[socket.id]).emit('updategoodies', json(data))
+    
   })
   
   socket.on('join', function(goodie) {
@@ -190,7 +225,7 @@ server.listen(app.get('port'));
 var markers = {}
 
 
-markers.first = new goodie('alcohol',37.423708, -122.071039,'http://static.desktopnexus.com/wallpaper/970047-1680x1050-[DesktopNexus.com].jpg?st=daEeje9sE5NxBo2csLubVg&e=1373749725');
+markers.first = new goodie('alcohol',37.423708, -122.071039,'alcohol');
 markers.first.members.push('Aya', 'Jordan', 'Devon');
 
 
@@ -216,11 +251,11 @@ app.get('/addMarker', function(req, res, next){
   markers[Id] = new goodie(Id, latitude, longitude, url)
 });
 
-var spliced = {"http://static.desktopnexus.com/wallpaper/970047-1680x1050-[DesktopNexus.com].jpg?st=daEeje9sE5NxBo2csLubVg&e=1373749725": ["http://i.imgur.com/TeTXeEa.jpg", "http://i.imgur.com/0AhFr2I.jpg", "http://i.imgur.com/YFZvVZW.jpg", "http://i.imgur.com/h9phPXy.jpg"]}
+var spliced = {"alcohol": ["http://i.imgur.com/TeTXeEa.jpg", "http://i.imgur.com/0AhFr2I.jpg", "http://i.imgur.com/YFZvVZW.jpg", "http://i.imgur.com/h9phPXy.jpg"]}
 
 function distributeImages(markerid) {
 
-  url markers[markerid][url]
+  url = markers[markerid]["url"]
   sockets = io.sockets.clients(markerid)
   for(socket in sockets){
     sockets[socket].emit('unlockAll', spliced[url][socket])
