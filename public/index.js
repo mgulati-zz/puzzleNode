@@ -16,6 +16,39 @@ var styles = [
 ]
 
 $(function() {
+
+  socket = io.connect(window.location.hostname, {'sync disconnect on unload' : true});
+  socket.on('unlockAll', function() {
+    showHeader('All your friends have unlocked, retreiving reward...');
+    $.get("getReward", data).done(function(data) {
+      alert('throwImageHere');
+    })
+  })
+
+  $('#nameForm').submit(function(e) {
+    e.preventDefault();
+
+    if ($('#textBox').val().length < 3) return
+
+    $('#nameForm').fadeOut();
+    myName = $('#textBox').val();
+    socket.emit('name', myName);
+    startMap();
+  });
+
+  $('#textBox').keyup(function() {
+    if ($('#textBox').val().length < 2) $('#getStarted').removeClass('opaque');
+    else $('#getStarted').addClass('opaque');
+  });
+
+  lock = $('#lock');
+  lock.click(function() {
+    unlock();
+  })
+
+});
+
+function startMap() {
   var mapOptions = {
     center: new google.maps.LatLng(32.52828936482526,-118.32275390625),
     zoom: 7,
@@ -47,26 +80,13 @@ $(function() {
     }
   })
 
-  lock = $('#lock');
-  lock.click(function() {
-    unlock();
-  })
-
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(updateMyLocation, error);
     navigator.geolocation.watchPosition(updateMyLocation, error);
   }
   else error('not supported');
 
-  socket = io.connect(window.location.hostname, {'sync disconnect on unload' : true});
-  socket.on('unlockAll', function() {
-    showHeader('All your friends have unlocked, retreiving reward...');
-    $.get("getReward", data).done(function(data) {
-      alert('throwImageHere');
-    })
-  })
-
-});
+}
 
 function error(msg) {
   console.log(msg);
@@ -80,7 +100,7 @@ function updateMyLocation(myPosition) {
   myMarker.setPosition(latlng);
   myLatLng = myPosition;
 
-  data = {user_id: "myName", 
+  data = {user_id: myName, 
           latitude: myPosition.coords.latitude, 
           longitude: myPosition.coords.longitude, 
           zoom: map.getZoom() }

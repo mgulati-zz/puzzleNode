@@ -91,23 +91,16 @@ io.sockets.on('connection', function (socket) {
   })
 
   socket.on('disconnect', function () {
-    if (goodies[socket.id] && markers[goodies[socket.id]] && 
-        markers[goodies[socket.id]].members.indexOf(names[socket.id]) != -1)
-          markers[goodies[socket.id]].members.splice(markers[goodies[socket.id]].memebrs.indexOf(names[socket.id]),1)
     user_id = names[socket.id]
-    delete names[socket.id];
     io.sockets.in(goodies[socket.id]).emit('personLeft', names[socket.id]);
+    if (goodies[socket.id] && markers[goodies[socket.id]].members.indexOf(names[socket.id]) > -1)
+      markers[goodies[socket.id]].members.remove(names[socket.id]); 
+    delete names[socket.id];
     delete goodies[socket.id];
     delete locked[user_id]
   });
 
 });
-
-var checkRange = 0.03;
-function inRange(goodie, latitude, longitude) {
-  return (Math.abs(markers[goodie]['latitude'] - latitude) < checkRange &&
-          Math.abs(markers[goodie]['longitude'] - longitude) < checkRange)  
-}
 
 //routing, if css and javascript send file, otherwise render the page
 app.get('/', function(req, res, next){
@@ -119,7 +112,7 @@ app.get('/', function(req, res, next){
 app.get('/getGoodies', function(req,res,next){
 
   function distance(x1,y1,x2,y2){
-    return Math.sqrt(Math.exp((x1-x2),2) + Math.exp((y1-y2),2))
+    return Math.sqrt(Math.pow((x1-x2),2) + Math.pow((y1-y2),2))
   }
 
   user_id = req.query.user_id
@@ -140,18 +133,25 @@ app.get('/getGoodies', function(req,res,next){
         mygoodie = curgoodie
       }
 
-      if(distance(latitude,longitude,curgoodie.latitude,curgoodie.longitude) < distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude)){
-        bestgoodie = curgoodie
+      if(distance(latitude,longitude,curgoodie.latitude,curgoodie.longitude) < 
+          distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude)){
+            bestgoodie = curgoodie
       }
   }
 
+  var enabledGoodie = null;
   if (mygoodie && mygoodie.members) mygoodie.members.remove(user_id)
-  if (bestgoodie && bestgoodie.members) bestgoodie.members.push(user_id)
+  if (bestgoodie && 
+      bestgoodie.members && 
+      distance(latitude,longitude,bestgoodie.latitude,bestgoodie.longitude) < .001) {
+        bestgoodie.members.push(user_id);
+        enabledGoodie = bestgoodie.Id;
+  }
+        
 
   var data = {}
   data['goodies'] = markers
-  data['enabledGoodie'] = bestgoodie.Id
-
+  data['enabledGoodie'] = enabledGoodie;
   res.json(data);
 });
 
@@ -161,25 +161,24 @@ var corners = ['NorthEast','SouthEast','SouthWest','NorthWest']
 var img = require('imagemagick');
 
 function breakUpImage(imgPath) {
-img.readMetadata(imgPath, function(error, metadata){
-  if (error) throw error;
-  console.log('Halted at ' + metadata.exif.dateTimeOriginal);
-})
+  img.readMetadata(imgPath, function(error, metadata){
+    if (error) throw error;
+    console.log('Halted at ' + metadata.exif.dateTimeOriginal);
+  })
 
-for (var i = 0; i <= 4; i++)
-  img.crop({
-    srcPath: imgPath,
-    dstPath: 'crop'+i+'.jpg',
-    width: (metadata.width)/2,
-    height: (metadata.height)/2,
-    quality: 1,
-    gravity: corners[i]
-  }, function(error, stdout, stderror){
+  for (var i = 0; i <= 4; i++)
+    img.crop({
+      srcPath: imgPath,
+      dstPath: 'crop'+i+'.jpg',
+      width: (metadata.width)/2,
+      height: (metadata.height)/2,
+      quality: 1,
+      gravity: corners[i]
+    }, function(error, stdout, stderror){
 
-  });
+    });
 
- //load files, send them out, and delete them
-  
+  //load files, send them out, and delete them 
 }
 
 
@@ -213,7 +212,7 @@ app.get('/addMarker', function(req, res, next){
   url = req.query.url
   latitude = req.query.latitude
   longitude = req.query.longitude
-  markers.id = new goodie(Id, latitude, longitude, url)
+  markers[Id] = new goodie(Id, latitude, longitude, url)
 });
 
 
